@@ -23,8 +23,39 @@ class MACHINE():
         self.whole_points = []
         self.location = []
         self.triangles = [] # [(a, b), (c, d), (e, f)]
+        self.minmaxtree= self.MinMaxNode()
+        self.minmax_depth=10
+
+    class MinMaxNode:
+        def __init__(self):
+            self.nodetype="a" #alpha or beta
+            self.alpha=0
+            self.beta=0
+            #here should be data of the map and the move last made
+            self.childs=[]
+
+        def create_childs():
+            #make all possible moves
+            pass
+
+        def maximise_child(self, depth_count, parent_beta):
+            #if depth 0 eval.
+            #forall child minimise(depth_count -1)
+            #do alphabeta cutoff
+            pass
+
+        def minimise_child(self, depth_count, parent_alpha):
+            #forall child maximise(depth_count -1)
+            pass
+
+        def eval_node(self):
+            #evaluate
+            pass
 
     def find_best_selection(self):
+
+
+
         available = [[point1, point2] for (point1, point2) in list(combinations(self.whole_points, 2)) if self.check_availability([point1, point2])]
         return random.choice(available)
     
