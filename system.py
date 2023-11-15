@@ -99,6 +99,7 @@ class SYSTEM():
 
         # Canvas
         self.board = Canvas(self.root, width=CANVAS_SIZE, height=CANVAS_SIZE, background="white")
+        self.board.bind("<Button-1>", self.on_canvas_click)
         self.board.place(x=200, y=50)
 
         # Turn
@@ -173,7 +174,27 @@ class SYSTEM():
         self.label_result = Label(self.root, text="The game is ongoing!!", background=BACKGROUND)
         self.label_result.place(x=result_x, y=result_y)
 
+        self.click_mode=1
+
         self.root.mainloop()
+
+    def on_canvas_click(self, event):
+        x = self.board.canvasx(event.x)
+        y = self.board.canvasy(event.y)
+        for a,b in self.whole_points:
+            if(((x-self.location[a])**2+(y-self.location[b])**2)<((RADIUS+10)**2)):
+                if(self.click_mode==1):
+                    self.start_x.delete(0, "end")
+                    self.start_x.insert(0, a)
+                    self.start_y.delete(0, "end")
+                    self.start_y.insert(0, b)
+                    self.click_mode=2
+                elif(self.click_mode==2):
+                    self.end_x.delete(0, "end")
+                    self.end_x.insert(0, a)
+                    self.end_y.delete(0, "end")
+                    self.end_y.insert(0, b)
+                    self.click_mode=1
     
     # Canvas(Board)-related Functions
     def set_new_board(self):
@@ -250,7 +271,7 @@ class SYSTEM():
             self.drawn_lines.append(line)
 
             draw = [(self.location[point[0]], self.location[point[1]]) for point in line]
-            self.line(draw[0], draw[1], color=LINE_COLOR)
+            self.line(draw[0], draw[1], color="red")#LINE_COLOR)
 
             self.check_triangle(line)
             self.change_turn() 
@@ -283,7 +304,7 @@ class SYSTEM():
             self.drawn_lines.append(line)
 
             draw = [(self.location[point[0]], self.location[point[1]]) for point in line]
-            self.line(draw[0], draw[1], color=LINE_COLOR)
+            self.line(draw[0], draw[1], color="blue")#LINE_COLOR)
 
             self.check_triangle(line)
             self.change_turn() 
