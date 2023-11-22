@@ -110,7 +110,7 @@ class MACHINE():
         points_to_connect = self.count_connected_lines_two()
         if points_to_connect:
 
-            # 3번이상 연결된 점이 있는 경우 둘씩 조합하여 가능성을 따짐
+            # 3번 이상 연결된 점이 있는 경우 둘씩 조합하여 가능성을 따짐
             if len(points_to_connect) > 2:
                 combinations_points = list(combinations(points_to_connect, 2))
                 for line in combinations_points:
@@ -159,10 +159,10 @@ class MACHINE():
 
         index = 0
 
-        # 두번 이상 연결된 점 찾기
+        # 두 번 이상 연결된 점 찾기
         for c in count_all_points:
             if c >= 2:
-                point_selected_2times = count_all_points[index] #TODO. 두번 연결된 점이 여러개인 경우 어떻게 할지 결정해야 함
+                point_selected_2times = count_all_points[index] #TODO. 두번 연결된 점이 여러 개인 경우 어떻게 할지 결정해야 함
                 break
             index += 1
 
