@@ -132,7 +132,8 @@ class MACHINE:
         if len(self.drawn_lines)<= 5:
             return self.rule_based_selection()
         else:
-            (ex, line) = self.max(-2, 2)
+            (ex, line) = self.max(-2,2,0)
+            print(line)
             return line
 
     def max(self, alpha, beta, depth):
