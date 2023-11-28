@@ -137,18 +137,9 @@ class MACHINE:
         if len(self.drawn_lines)<= 5:
             return self.rule_based_selection()
         else:
-            available = [
-                [point1, point2]
-                for (point1, point2) in list(combinations(self.whole_points, 2))
-                if self.check_availability([point1, point2])
-            ]
-            #return random.choice(available)
             (ex, line) = self.max(-2, 2)
             return line
-        # available = [[point1, point2] for (point1, point2) in list(combinations(self.whole_points, 2)) if self.check_availability([point1, point2])]
-        # return random.choice(available)
-
-        # return self.rule_based_selection()
+        
 
     def max(self, alpha, beta):
         maxv = -2
@@ -337,7 +328,7 @@ class MACHINE:
             available_new_lines = []
 
             for new_line in new_lines:
-                if self.check_availability(self.turn, new_line):
+                if self.check_availability(self.id, new_line):
                     available_new_lines.append(new_line)
 
             if available_new_lines:
