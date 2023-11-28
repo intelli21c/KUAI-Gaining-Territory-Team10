@@ -126,101 +126,87 @@ class MACHINE:
             # check_triangle()
 
     def find_best_selection(self):
-        # available = [[point1, point2] for (point1, point2) in list(combinations(self.whole_points, 2)) if self.check_availability([point1, point2])]
-        # return random.choice(available)
-    
-        # TODO get changed game state and change root of node to opponents move
-        # but is that necessasary...?
         #self.minmaxtree.drawn_lines = deepcopy(self.drawn_lines)
         #return list(self.minmaxtree.maximise_child_toplevel(self.minmax_depth))
 
         if len(self.drawn_lines)<= 5:
             return self.rule_based_selection()
         else:
-            available = [
-                [point1, point2]
-                for (point1, point2) in list(combinations(self.whole_points, 2))
-                if self.check_availability([point1, point2])
-            ]
-            #return random.choice(available)
             (ex, line) = self.max(-2, 2)
             return line
-        # available = [[point1, point2] for (point1, point2) in list(combinations(self.whole_points, 2)) if self.check_availability([point1, point2])]
-        # return random.choice(available)
 
-        # return self.rule_based_selection()
-
-    def max(self, alpha, beta):
+def max(self, alpha, beta, depth):
         maxv = -2
-        max_line = [(0, 0), (0, 0)]
-
-        if self.check_endgame():
-            if self.score[0] > self.score[1]:
-                maxv = 1
-            elif self.score[0] < self.score[1]:
+        max_line = [(0,0),(0,0)]
+        
+        if self.check_endgame() or depth == 3:
+            if self.score[0]>self.score[1]:
                 maxv = -1
-            elif self.score[0] == self.score[1]:
+            elif self.score[0]<self.score[1]:
+                maxv = 1
+            elif self.score[0]==self.score[1]:
                 maxv = 0
+            print(self.drawn_lines)
+            print(maxv)
             return (maxv, max_line)
 
-        for i in self.whole_points:
-            for j in self.whole_points:
-                if i == j:
-                    continue
-                if self.check_availability([i, j]):
-                    line = self.organize_points([i, j])
+        for i in range(0, len(self.whole_points)):
+            for j in range(i, len(self.whole_points)):
+                if self.whole_points[i] == self.whole_points[j] : continue
+                if self.check_availability([self.whole_points[i], self.whole_points[j]]):
+                    line = self.organize_points([self.whole_points[i], self.whole_points[j]])
                     self.drawn_lines.append(line)
-                    tf = self.evaluate(line, 0)
-                    (m, min_line) = self.min(alpha, beta)
-                    if m > maxv:
+                    tf = self.evaluate(line, 1)
+                    (m, min_line) = self.min(alpha, beta, depth + 1)
+                    if m != 2 and (m > maxv):
                         maxv = m
                         max_line = line
-                    self.drawn_lines.pop()
+                    self.drawn_lines.remove(line)
                     if tf:
-                        self.score[0] -= 1
+                        self.score[1]-=1
                         self.triangles.pop()
 
                     if maxv >= beta:
                         return (maxv, max_line)
-
+                    
                     if maxv > alpha:
                         alpha = maxv
-
         return (maxv, max_line)
 
-    def min(self, alpha, beta):
+    def min(self, alpha, beta, depth):
         minv = 2
-        min_line = [(0, 0), (0, 0)]
+        min_line = [(0,0),(0,0)]
 
-        if self.check_endgame():
-            if self.score[0] > self.score[1]:
-                minv = 1
-            elif self.score[0] < self.score[1]:
+        if self.check_endgame() or depth == 3:
+            if self.score[0]>self.score[1]:
                 minv = -1
-            elif self.score[0] == self.score[1]:
+            elif self.score[0]<self.score[1]:
+                minv = 1
+            elif self.score[0]==self.score[1]:
                 minv = 0
+            print(self.drawn_lines)
+            print(minv)
             return (minv, min_line)
 
-        for i in self.whole_points:
-            for j in self.whole_points:
-                if i == j:
-                    continue
-                if self.check_availability([i, j]):
-                    line = self.organize_points([i, j])
+        for i in range(0, len(self.whole_points)):
+            for j in range(i, len(self.whole_points)):
+                if self.whole_points[i] == self.whole_points[j] : continue
+                if self.check_availability([self.whole_points[i], self.whole_points[j]]):
+                    line = self.organize_points([self.whole_points[i], self.whole_points[j]])
                     self.drawn_lines.append(line)
-                    tf = self.evaluate(line, 1)
-                    (m, max_line) = self.max(alpha, beta)
-                    if m > minv:
+                    tf = self.evaluate(line, 0)
+                    (m, max_line) = self.max(alpha, beta, depth + 1)
+                    if m != -2 and (m < minv):
                         minv = m
                         min_line = line
-                    self.drawn_lines.pop()
+                    self.drawn_lines.remove(line)
                     if tf:
-                        self.score[1] -= 1
+                        self.score[0]-=1
                         self.triangles.pop()
 
                     if minv <= alpha:
                         return (minv, min_line)
-
+                    
                     if minv < beta:
                         beta = minv
         return (minv, min_line)
