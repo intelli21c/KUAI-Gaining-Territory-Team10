@@ -135,7 +135,7 @@ class MACHINE:
             (ex, line) = self.max(-2, 2)
             return line
 
-def max(self, alpha, beta, depth):
+    def max(self, alpha, beta, depth):
         maxv = -2
         max_line = [(0,0),(0,0)]
         
