@@ -46,7 +46,7 @@ class MACHINE:
         def create_childs(self):
             global g_machine
             lines = list(combinations(g_machine.whole_points, 2))
-            lines = organize_points(lines)
+            lines = organise_points(lines)
             for l in lines:
                 if not check_avail(l, g_machine.whole_points, self.drawn_lines):
                     continue
@@ -323,7 +323,7 @@ class MACHINE:
                 for line in self.drawn_lines:
                     if point in line:
                         connected = True
-                        break
+                        continue
 
                 if not connected:
                     unconnected_points.append(point)
