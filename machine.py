@@ -1,6 +1,6 @@
 import random
 from itertools import combinations
-from shapely.geometry import LineString, Point
+from shapely.geometry import LineString, Point, Polygon
 
 class MACHINE():
     """
@@ -27,7 +27,7 @@ class MACHINE():
     def find_best_selection(self):
         available = [[point1, point2] for (point1, point2) in list(combinations(self.whole_points, 2)) if self.check_availability([point1, point2])]
         return random.choice(available)
-    
+    0
     def check_availability(self, line):
         line_string = LineString(line)
 
@@ -70,7 +70,36 @@ class MACHINE():
         if(완성된 사각형이 있는지 확인하는 함수)  #TODO. 사각형이 있는지 확인하는 함수
             # TODO. 이미 완성된 사각형이 있다면 그 사이를 잇는 선분 그리기
             return 그 사이를 잇는 선분
-        ''' 
+        '''
+        # 상대방이 만든 점이 포함된 삼각형을 찾아 연결
+        for triangle in self.triangles:
+            connected_vertices = 0  # 삼각형 내에 이미 연결된 꼭짓점 수
+
+            for vertex in triangle:
+                if any({point, vertex} in self.drawn_lines or {vertex, point} in self.drawn_lines for point in
+                       self.whole_points):
+                    connected_vertices += 1
+
+            # 삼각형의 세 꼭짓점 중 어느 꼭짓점과도 연결되어 있지 않으면 연결
+            if connected_vertices == 0:
+                for point in self.whole_points:
+                    if Point(point).within(Polygon(triangle)):
+                        new_line = self.check_availability(self.turn, (point, triangle[0]))
+                        if new_line:
+                            return new_line
+
+            # 삼각형의 세 꼭짓점 중 한개의 꼭짓점이 이미 연결된 상태라면 넘어가기
+            elif connected_vertices == 1:
+                continue
+
+            # 삼각형의 세 꼭짓점 중 두개의 꼭짓점이 연결된 상태라면 나머지 하나의 꼭짓점과 연결
+            elif connected_vertices == 2:
+                for point in self.whole_points:
+                    for vertex in triangle:
+                        if all({point, vertex} not in self.drawn_lines and {vertex, point} not in self.drawn_lines :
+                            new_line = self.check_availability(self.turn, (point, vertex))
+                            if new_line:
+                                return new_line
 
         # 아무 선분도 연결되지 않은 두 점 찾기
         unconnected_points = []
