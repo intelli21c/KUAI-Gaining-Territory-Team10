@@ -45,9 +45,9 @@ class MACHINE:
         def create_childs(self):
             global g_machine
             lines = list(combinations(g_machine.whole_points, 2))
-            lines = self.organise_points(lines)
+            lines = organise_points(lines)
             for l in lines:
-                if not self.check_avail(l, g_machine.whole_points, self.drawn_lines):
+                if not check_avail(l, g_machine.whole_points, self.drawn_lines):
                     continue
                 newchild = MACHINE.MinMaxNode()
                 newchild.drawn_lines = deepcopy(self.drawn_lines)
@@ -127,15 +127,15 @@ class MACHINE:
     def find_best_selection(self):
         # TODO get changed game state and change root of node to opponents move
         # but is that necessasary...?
-        self.minmaxtree.drawn_lines = deepcopy(self.drawn_lines)
-        return list(self.minmaxtree.maximise_child_toplevel(self.minmax_depth))
+        #self.minmaxtree.drawn_lines = deepcopy(self.drawn_lines)
+        #return list(self.minmaxtree.maximise_child_toplevel(self.minmax_depth))
 
         available = [
             [point1, point2]
             for (point1, point2) in list(combinations(self.whole_points, 2))
             if self.check_availability([point1, point2])
         ]
-        return random.choice(available)
+        #return random.choice(available)
         (ex, line) = self.max(-2, 2)
         return line
         # available = [[point1, point2] for (point1, point2) in list(combinations(self.whole_points, 2)) if self.check_availability([point1, point2])]
@@ -216,7 +216,7 @@ class MACHINE:
                         beta = minv
         return (minv, min_line)
 
-    def organise_points(self, point_list):
+    def organize_points(self, point_list):
         point_list.sort(
             key=lambda x: (x[0], x[1])
         )  # x[0],x[1]을 기준으로 정렬해서 저장, 즉 x값을 기준으로 오름차순으로 정렬하고 x값이 같다면 y값을 기준으로 정렬
@@ -302,39 +302,47 @@ class MACHINE:
                     return 1
         return 0
 
-    ##function version of checkavail
-    def check_avail(line, whole_points, drawn_lines):
-        line_string = LineString(line)
 
-        # Must be one of the whole points
-        condition1 = (line[0] in whole_points) and (line[1] in whole_points)
+def organise_points(point_list):
+    point_list.sort(
+        key=lambda x: (x[0], x[1])
+    )  # x[0],x[1]을 기준으로 정렬해서 저장, 즉 x값을 기준으로 오름차순으로 정렬하고 x값이 같다면 y값을 기준으로 정렬
+    return point_list
 
-        # Must not skip a dot
-        condition2 = True
-        for point in whole_points:
-            if point == line[0] or point == line[1]:
-                continue
-            else:
-                if bool(line_string.intersection(Point(point))):
-                    condition2 = False
 
-        # Must not cross another line
-        condition3 = True
-        for l in drawn_lines:
-            if len(list(set([line[0], line[1], l[0], l[1]]))) == 3:
-                continue
-            elif bool(line_string.intersection(LineString(l))):
-                condition3 = False
+##function version of checkavail
+def check_avail(line, whole_points, drawn_lines):
+    line_string = LineString(line)
 
-        # Must be a new line
-        condition4 = line not in drawn_lines
+    # Must be one of the whole points
+    condition1 = (line[0] in whole_points) and (line[1] in whole_points)
 
-        condition5 = line[0] != line[1]
-
-        if condition1 and condition2 and condition3 and condition4 and condition5:
-            return True
+    # Must not skip a dot
+    condition2 = True
+    for point in whole_points:
+        if point == line[0] or point == line[1]:
+            continue
         else:
-            return False
+            if bool(line_string.intersection(Point(point))):
+                condition2 = False
+
+    # Must not cross another line
+    condition3 = True
+    for l in drawn_lines:
+        if len(list(set([line[0], line[1], l[0], l[1]]))) == 3:
+            continue
+        elif bool(line_string.intersection(LineString(l))):
+            condition3 = False
+
+    # Must be a new line
+    condition4 = line not in drawn_lines
+
+    condition5 = line[0] != line[1]
+
+    if condition1 and condition2 and condition3 and condition4 and condition5:
+        return True
+    else:
+        return False
 
 
 g_machine: MACHINE = 0
