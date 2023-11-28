@@ -66,47 +66,76 @@ class MACHINE():
     def rule_based_selection(self):
         
         '''
+        TODO. 
         # 1. 이미 완성된 사각형이 있다면 그 사이를 잇는 선분을 그리기
         if(완성된 사각형이 있는지 확인하는 함수)  #TODO. 사각형이 있는지 확인하는 함수
             # TODO. 이미 완성된 사각형이 있다면 그 사이를 잇는 선분 그리기
             return 그 사이를 잇는 선분
         ''' 
+		# heuristic #1. 상대방이 만든 점이 포함된 삼각형을 찾아 연결
+        for triangle in self.triangles:
+            connected_vertices = 0  # 삼각형 내에 이미 연결된 꼭짓점 수
+		    
+            for vertex in triangle:
+                for point in self.whole_points:
+                    if (point, vertex) in self.drawn_lines or (vertex, point) in self.drawn_lines:
+                    # if any({point, vertex} in self.drawn_lines or {vertex, point} in self.drawn_lines for point in self.whole_points):
+                        connected_vertices += 1
+		
+            # 삼각형의 세 꼭짓점 중 어느 꼭짓점과도 연결되어 있지 않으면 연결
+            if connected_vertices == 0:
+                for vertex in triangle:
+                    new_line = self.check_availability(self.turn, (point, vertex))
+                    if new_line:
+                        return new_line
 
-        # 아무 선분도 연결되지 않은 두 점 찾기
-        unconnected_points = []
+            # 삼각형의 세 꼭짓점 중 한개의 꼭짓점이 이미 연결된 상태라면 넘어가기
+            elif connected_vertices == 1:
+                continue
 
-        for point in self.whole_points:
-            connected = False
+            # 삼각형의 세 꼭짓점 중 두개의 꼭짓점이 연결된 상태라면 나머지 하나의 꼭짓점과 연결
+            elif connected_vertices == 2:
+                for vertex in triangle:
+                    if all({point, vertex} not in self.drawn_lines and {vertex, point} not in self.drawn_lines for point in self.whole_points):
+                        new_line = self.check_availability(self.turn, (point, vertex))
+                        if new_line:
+                            return new_line
 
-            for line in self.drawn_lines:
-                if point in line:
-                    connected = True
-                    break  # 하나의 연결된 선분을 찾았으면 더 이상 확인할 필요가 없으므로 반복문 종료
+            # 아무 선분도 연결되지 않은 두 점 찾기
+            unconnected_points = []
 
-            if not connected:
-                unconnected_points.append(point)
+            for point in self.whole_points:
+                connected = False
 
-        # unconnected_points 중 두 점을 연결해서 선분 만들기
-        new_lines = []
+                for line in self.drawn_lines:
+                    if point in line:
+                        connected = True
+                        break
 
-        for i in range(len(unconnected_points) - 1):
-            for j in range(i + 1, len(unconnected_points)):
-                point1 = unconnected_points[i]
-                point2 = unconnected_points[j]
-                new_line = (point1, point2)
-                new_lines.append(new_line)
+                if not connected:
+                    unconnected_points.append(point)
 
-        # 가능한 선분인지 확인
-        available_new_lines = []
+            # unconnected_points 중 두 점을 연결해서 선분 만들기
+            new_lines = []
 
-        for new_line in new_lines:
-            if self.check_availability(new_line):
-                available_new_lines.append(new_line)
-                
-        if available_new_lines:
-            return random.choice(available_new_lines)
-    
-        # by jiwon(heuristic #2 : 한 점에서 이미 두 선분이 이어졌다면 그 두 선분을 이어야 한다)
+            for i in range(len(unconnected_points) - 1):
+                for j in range(i + 1, len(unconnected_points)):
+                    point1 = unconnected_points[i]
+                    point2 = unconnected_points[j]
+                    new_line = (point1, point2)
+                    new_lines.append(new_line)
+
+            # 가능한 선분인지 확인
+            available_new_lines = []
+
+            for new_line in new_lines:
+                if self.check_availability(self.turn, new_line):
+                    available_new_lines.append(new_line)
+
+            if available_new_lines:
+                return random.choice(available_new_lines)
+            
+        # heuristic #2 : 한 점에서 이미 두 선분이 이어졌다면 그 두 선분을 이어야 한다(by jiwon)
         points_to_connect = self.count_connected_lines_two()
         if points_to_connect:
 
@@ -118,15 +147,15 @@ class MACHINE():
                         return line
 
             # 2번만 연결되었다면 상대 두 점을 그대로 반환
-            elif len(points_to_connect)== 2:
+            elif len(points_to_connect) == 2:
                 return points_to_connect
             
             # 2번 이상 연결된 점이 1개 이하라면 pass
             else:
                 pass
 
-        # by jiwon(heuristic #5 : 휴리스틱으로 골라낼 수 있는 선분이 없다면 랜덤으로 선택)
-        # 기존 find_best_selection 함수 그대로
+        # heuristic #5 : 휴리스틱으로 골라낼 수 있는 선분이 없다면 랜덤으로 선택(by jiwon)
+        # -> 기존 find_best_selection 함수 그대로
         available = [[point1, point2] for (point1, point2) in list(combinations(self.whole_points, 2)) if self.check_availability([point1, point2])]
         return random.choice(available)
 
