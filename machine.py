@@ -141,12 +141,7 @@ class MACHINE:
         max_line = [(0,0),(0,0)]
         
         if self.check_endgame() or depth == 3:
-            if self.score[0]>self.score[1]:
-                maxv = -1
-            elif self.score[0]<self.score[1]:
-                maxv = 1
-            elif self.score[0]==self.score[1]:
-                maxv = 0
+            maxv = self.score[1] - self.score[0]
             print(self.drawn_lines)
             print(maxv)
             return (maxv, max_line)
@@ -159,7 +154,7 @@ class MACHINE:
                     self.drawn_lines.append(line)
                     tf = self.evaluate(line, 1)
                     (m, min_line) = self.min(alpha, beta, depth + 1)
-                    if m != 2 and (m > maxv):
+                    if (m > maxv):
                         maxv = m
                         max_line = line
                     self.drawn_lines.remove(line)
@@ -179,12 +174,7 @@ class MACHINE:
         min_line = [(0,0),(0,0)]
 
         if self.check_endgame() or depth == 3:
-            if self.score[0]>self.score[1]:
-                minv = -1
-            elif self.score[0]<self.score[1]:
-                minv = 1
-            elif self.score[0]==self.score[1]:
-                minv = 0
+            minv = self.score[1] - self.score[0]
             print(self.drawn_lines)
             print(minv)
             return (minv, min_line)
@@ -197,7 +187,7 @@ class MACHINE:
                     self.drawn_lines.append(line)
                     tf = self.evaluate(line, 0)
                     (m, max_line) = self.max(alpha, beta, depth + 1)
-                    if m != -2 and (m < minv):
+                    if (m < minv):
                         minv = m
                         min_line = line
                     self.drawn_lines.remove(line)
