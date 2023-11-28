@@ -1,6 +1,7 @@
 import random
 from itertools import combinations
 from shapely.geometry import LineString, Point, Polygon
+import numpy as np
 
 class MACHINE():
     """
@@ -25,9 +26,10 @@ class MACHINE():
         self.triangles = [] # [(a, b), (c, d), (e, f)]
 
     def find_best_selection(self):
-        available = [[point1, point2] for (point1, point2) in list(combinations(self.whole_points, 2)) if self.check_availability([point1, point2])]
-        return random.choice(available)
-    0
+        # available = [[point1, point2] for (point1, point2) in list(combinations(self.whole_points, 2)) if self.check_availability([point1, point2])]
+        # return random.choice(available)
+        return self.rule_based_selection()
+    
     def check_availability(self, line):
         line_string = LineString(line)
 
@@ -97,7 +99,7 @@ class MACHINE():
             elif connected_vertices == 2:
                 for point in self.whole_points:
                     for vertex in triangle:
-                        if all({point, vertex} not in self.drawn_lines and {vertex, point} not in self.drawn_lines) :
+                        if all({point, vertex} not in self.drawn_lines and {vertex, point} not in self.drawn_lines):
                             new_line = self.check_availability(self.turn, (point, vertex))
                             if new_line:
                                 return new_line
@@ -169,15 +171,16 @@ class MACHINE():
 
         # heuristic #5 : 휴리스틱으로 골라낼 수 있는 선분이 없다면 랜덤으로 선택(by jiwon)
         # -> 기존 find_best_selection 함수 그대로
-        available = [[point1, point2] for (point1, point2) in list(combinations(self.whole_points, 2)) if self.check_availability([point1, point2])]
-        return random.choice(available)
+        for (point1, point2) in list(combinations(self.whole_points, 2)):
+            if self.check_availability([point1, point2]):
+                return random.choice(point1, point2)
 
     # 각 점에서 연결된 선분의 개수를 세는 함수
     #  -> TODO. 한번도 연결되지 않은 선분을 찾을 때 사용하지 않을 거라면 count_connected_lines_two로 합칠 것
     def count_connected_lines(self):
         whole_points = self.whole_points
         drawn_lines = self.drawn_lines
-        count_connected = []
+        count_connected = np.zeros_like(self.whole_points)
         point_index =0
 
         for point in whole_points:
