@@ -45,6 +45,7 @@ class SYSTEM():
         self.interval = None
         self.offset = None
         self.machine = MACHINE()
+        self.machine2 = MACHINE()
 
         self.get_score = False
 
@@ -99,6 +100,7 @@ class SYSTEM():
 
         # Canvas
         self.board = Canvas(self.root, width=CANVAS_SIZE, height=CANVAS_SIZE, background="white")
+        self.board.bind("<Button-1>", self.on_canvas_click)
         self.board.place(x=200, y=50)
 
         # Turn
@@ -173,7 +175,30 @@ class SYSTEM():
         self.label_result = Label(self.root, text="The game is ongoing!!", background=BACKGROUND)
         self.label_result.place(x=result_x, y=result_y)
 
+        self.button_auto = Button(self.root, text="AUTO(STEP)", width=10, fg="grey20", highlightbackground=BACKGROUND, command=self.auto)
+        self.button_auto.place(x=machine_x, y=machine_y+25+(machine_y-user_y)-50)
+
+        self.click_mode=1
+
         self.root.mainloop()
+
+    def on_canvas_click(self, event):
+        x = self.board.canvasx(event.x)
+        y = self.board.canvasy(event.y)
+        for a,b in self.whole_points:
+            if(((x-self.location[a])**2+(y-self.location[b])**2)<((RADIUS+10)**2)):
+                if(self.click_mode==1):
+                    self.start_x.delete(0, "end")
+                    self.start_x.insert(0, a)
+                    self.start_y.delete(0, "end")
+                    self.start_y.insert(0, b)
+                    self.click_mode=2
+                elif(self.click_mode==2):
+                    self.end_x.delete(0, "end")
+                    self.end_x.insert(0, a)
+                    self.end_y.delete(0, "end")
+                    self.end_y.insert(0, b)
+                    self.click_mode=1
     
     # Canvas(Board)-related Functions
     def set_new_board(self):
@@ -225,6 +250,8 @@ class SYSTEM():
         for idx_x, idx_y in self.whole_points:
             self.circle(self.location[idx_x], self.location[idx_y], CIRCLE_COLOR)
 
+        self.label_result.config(text="The game is ongoing!!")
+
     def circle(self, cx, cy, color):
         self.board.create_oval(cx-RADIUS, cy-RADIUS, cx+RADIUS, cy+RADIUS, fill=color, width=CIRCLE_WIDTH)
     
@@ -250,7 +277,7 @@ class SYSTEM():
             self.drawn_lines.append(line)
 
             draw = [(self.location[point[0]], self.location[point[1]]) for point in line]
-            self.line(draw[0], draw[1], color=LINE_COLOR)
+            self.line(draw[0], draw[1], color="red")#LINE_COLOR)
 
             self.check_triangle(line)
             self.change_turn() 
@@ -283,7 +310,7 @@ class SYSTEM():
             self.drawn_lines.append(line)
 
             draw = [(self.location[point[0]], self.location[point[1]]) for point in line]
-            self.line(draw[0], draw[1], color=LINE_COLOR)
+            self.line(draw[0], draw[1], color="blue")#LINE_COLOR)
 
             self.check_triangle(line)
             self.change_turn() 
@@ -430,4 +457,45 @@ class SYSTEM():
         elif turn == "MACHINE":
             self.turn = "USER"
             self.label_currentturn.config(text=self.turn, fg=USER_COLOR)
+
+    def machine2_go(self):
+        self.machine2.score = self.score
+        self.machine2.drawn_lines = self.drawn_lines
+        self.machine2.whole_points = self.whole_points
+        self.machine2.location = self.location
+        self.machine2.triangles = self.triangles
+
+        line = self.machine2.find_best_selection()
+        line = self.organize_points(line)
+
+        if self.check_availability("USER", line ):
+            self.label_warning.config(text="")
+            self.drawn_lines.append(line)
+
+            draw = [(self.location[point[0]], self.location[point[1]]) for point in line]
+            self.line(draw[0], draw[1], color="red")#LINE_COLOR)
+
+            self.check_triangle(line)
+            self.change_turn() 
+
+            self.label_userscore2.config(text=self.score[0])
+
+            if self.check_endgame():
+                if self.score[0]==self.score[1]:
+                    self.label_result.config(text="The game ended in a tie...")
+                else:
+                    f = lambda i: self.score[i]
+                    winner = PLAYERS[max(range(len(self.score)), key=f)]
+                    self.label_result.config(text=f"The Winner is the {winner}!!")
+
+        else:
+            self.label_warning.config(text="Check the turn \nor the machine error!")
+
     
+    def auto(self):
+        if(self.check_endgame()):
+            return
+        if(self.turn=="USER"):
+            self.machine2_go()
+        elif(self.turn=="MACHINE"):
+            self.machine_go()
