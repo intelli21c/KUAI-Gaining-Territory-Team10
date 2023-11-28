@@ -134,14 +134,17 @@ class MACHINE:
         #self.minmaxtree.drawn_lines = deepcopy(self.drawn_lines)
         #return list(self.minmaxtree.maximise_child_toplevel(self.minmax_depth))
 
-        available = [
-            [point1, point2]
-            for (point1, point2) in list(combinations(self.whole_points, 2))
-            if self.check_availability([point1, point2])
-        ]
-        #return random.choice(available)
-        (ex, line) = self.max(-2, 2)
-        return line
+        if len(self.drawn_lines)<= 5:
+            return self.rule_based_selection()
+        else:
+            available = [
+                [point1, point2]
+                for (point1, point2) in list(combinations(self.whole_points, 2))
+                if self.check_availability([point1, point2])
+            ]
+            #return random.choice(available)
+            (ex, line) = self.max(-2, 2)
+            return line
         # available = [[point1, point2] for (point1, point2) in list(combinations(self.whole_points, 2)) if self.check_availability([point1, point2])]
         # return random.choice(available)
 
@@ -306,14 +309,6 @@ class MACHINE:
             elif connected_vertices == 1:
                 continue
 
-            # 삼각형의 세 꼭짓점 중 두개의 꼭짓점이 연결된 상태라면 나머지 하나의 꼭짓점과 연결
-            elif connected_vertices == 2:
-                for vertex in triangle:
-                    if all({point, vertex} not in self.drawn_lines and {vertex, point} not in self.drawn_lines for point in self.whole_points):
-                        new_line = self.check_availability(self.turn, (point, vertex))
-                        if new_line:
-                            return new_line
-
             # 아무 선분도 연결되지 않은 두 점 찾기
             unconnected_points = []
 
@@ -349,6 +344,7 @@ class MACHINE:
                 return random.choice(available_new_lines)
             
         # heuristic #2 : 한 점에서 이미 두 선분이 이어졌다면 그 두 선분을 이어야 한다(by jiwon)
+        '''#오류 수정중(23.11.28 16:20)
         points_to_connect = self.count_connected_lines_two()
         if points_to_connect:
 
@@ -366,19 +362,20 @@ class MACHINE:
             # 2번 이상 연결된 점이 1개 이하라면 pass
             else:
                 pass
-
+        
+        '''
         # heuristic #5 : 휴리스틱으로 골라낼 수 있는 선분이 없다면 랜덤으로 선택(by jiwon)
         # -> 기존 find_best_selection 함수 그대로
-        for (point1, point2) in list(combinations(self.whole_points, 2)):
-            if self.check_availability([point1, point2]):
-                return random.choice(point1, point2)
+        available = [[point1, point2] for (point1, point2) in list(combinations(self.whole_points, 2)) if self.check_availability([point1, point2])]
+        return random.choice(available)
+
 
     # 각 점에서 연결된 선분의 개수를 세는 함수
     #  -> TODO. 한번도 연결되지 않은 선분을 찾을 때 사용하지 않을 거라면 count_connected_lines_two로 합칠 것
     def count_connected_lines(self):
         whole_points = self.whole_points
         drawn_lines = self.drawn_lines
-        count_connected = np.zeros_like(self.whole_points)
+        count_connected = np.zeros_like(self.whole_points) # 각 점이 다른 점들과 연결된 횟수
         point_index =0
 
         for point in whole_points:
@@ -397,17 +394,21 @@ class MACHINE:
         count_all_points = self.count_connected_lines()
         drawn_lines = self.drawn_lines
 
-        #points_selected_2times = []
+        point_selected_2times = []
         points_to_connect = [] # 연결 후보
 
+        # 두 번 이상 연결된 점 찾기
         index = 0
 
-        # 두 번 이상 연결된 점 찾기
         for c in count_all_points:
-            if c >= 2:
+            if c.any() >= 2:
                 point_selected_2times = count_all_points[index] #TODO. 두번 연결된 점이 여러 개인 경우 어떻게 할지 결정해야 함
                 break
             index += 1
+        print(point_selected_2times)
+
+        # point_selected_2times = count_all_points[count_all_points > 1]
+        # point_selected_2times = self.whole_points[count_all_points > 1]
 
         # 두 번 이상 연결된 점에 연결된 점들 반환(그 점들을 이으면 삼각형이 완성될 가능성이 있는)
         for line in drawn_lines:
