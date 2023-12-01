@@ -243,7 +243,7 @@ class MACHINE:
         
     
     # rule 기반 알고리즘  
-    def rule_based_selection(self): # return : [(x1, y10, (x2, y2)]
+    def rule_based_selection(self): # return : [(x1, y1), (x2, y2)]
         
         '''
         TODO. 
