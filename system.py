@@ -306,6 +306,7 @@ class SYSTEM():
         self.machine.triangles = self.triangles
 
         line = self.machine.find_best_selection()
+        print("finish find best selection")
         line = self.organize_points(line)
 
         if self.check_availability("MACHINE", line ):
@@ -469,6 +470,7 @@ class SYSTEM():
         self.machine2.triangles = self.triangles
 
         line = self.machine2.find_best_selection()
+        
         line = self.organize_points(line)
 
         if self.check_availability("USER", line ):
