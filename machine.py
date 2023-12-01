@@ -252,6 +252,40 @@ class MACHINE:
             # TODO. 이미 완성된 사각형이 있다면 그 사이를 잇는 선분 그리기
             return 그 사이를 잇는 선분
         '''
+        # heuristic #2 : 한 점에서 이미 두 선분이 이어졌다면 그 두 선분을 이어야 한다(by jiwon)
+        points_to_connect = self.find_candidate() # array
+        # print("points_to_connect : ", points_to_connect)
+        if points_to_connect:
+            # 3번 이상 연결된 점이 있는 경우 상대 점들을 둘씩 조합하여 가능성을 따짐
+            for combi in points_to_connect:
+                if len(combi) > 3:
+                    print("조합 가능성 combi[1:] : ", combi[1:])
+                    for [pointA, pointB] in list(combinations(combi[1:], 2)):
+                        print("후보 삼각형 : ", pointA, pointB, combi[0])
+                        if self.check_triangle([pointA, pointB], 1):
+                        # if self.probability_make_Triangle(pointA, pointB, combi[0]):
+                            print("poin1, point2 : ", pointA, pointB)
+                            if self.check_availability([pointA, pointB]):
+                                print("4 : new_line : ", [pointA, pointB])
+                                return [pointA, pointB]
+                            else:
+                                pass
+
+                # 2번만 연결되었다면 상대 두 점을 그대로 반환
+                elif len(combi) == 3:
+                    print("combi :", combi)
+                    if self.check_availability(combi[1:]):
+                        print("....")
+                        if self.check_triangle(combi[1:], 1):
+                        # if (self.probability_make_Triangle(combi[0], combi[1], combi[2])):
+                            print("....,,,,,,")
+                            print("5. 삼각형의 두 선분이 완성된 경우 : new_line : ", combi[1:])
+                            return combi[1:]
+                    else:
+                        print("..??????")
+                # 2번 이상 연결된 점이 1개 이하라면 pass
+                else:
+                    pass
 
         # 상대방이 만든 점이 포함된 삼각형을 찾아 연결
         for triangle in self.triangles:
@@ -322,28 +356,9 @@ class MACHINE:
 
         if available_new_lines:
             new_choice = list(random.choice(available_new_lines))
-            print("3 : new_line : ", new_choice)
+            print("3. 연결되지 않은 두 점 연결 : new_line : ", new_choice)
             return new_choice
             
-        # heuristic #2 : 한 점에서 이미 두 선분이 이어졌다면 그 두 선분을 이어야 한다(by jiwon)
-        points_to_connect = self.find_candidate() # array
-        # print("points_to_connect : ", points_to_connect)
-        if points_to_connect:
-            # 3번 이상 연결된 점이 있는 경우 둘씩 조합하여 가능성을 따짐
-            if len(points_to_connect) > 2:
-                for [point1, point2] in list(combinations(points_to_connect, 2)):
-                    if self.check_availability([point1, point2]): # TODO. 해당 선분을 이어 삼각형이 생성될 경우 그 삼각형 안에 점이 없는지 확인하는 조건을 추가해야 함
-                        print("4 : new_line : ", list(line))
-                        return list(line)
-
-            # 2번만 연결되었다면 상대 두 점을 그대로 반환
-            elif len(points_to_connect) == 2:
-                print("5 : new_line : ", points_to_connect)
-                return points_to_connect
-            
-            # 2번 이상 연결된 점이 1개 이하라면 pass
-            else:
-                pass
         
         # heuristic #5 : 휴리스틱으로 골라낼 수 있는 선분이 없다면 랜덤으로 선택(by jiwon)
         # -> 기존 find_best_selection 함수 그대로
@@ -366,7 +381,7 @@ class MACHINE:
             count_connected.append([])
             count_connected[index].append(point)
             index += 1
-        # print("count_connected : ", count_connected)
+        print("count_connected : ", count_connected)
 
         # 2차원 배열의 2열에 각 점이 다른 점들과 연결된 횟수 넣음
         index =0
@@ -386,31 +401,46 @@ class MACHINE:
         count_all_points = self.count_connected_lines() # 2차원 배열. [[(x좌표, y좌표), 각 점이 다른 점들과 연결된 횟수], [], ... ]
 
         point_selected_2times = [] # 2번 이상 선택된 점들
-        # print("count_all_points :", count_all_points)
+        print("count_all_points :", count_all_points)
         for set in count_all_points:
             if set[1] >= 2:
                 point_selected_2times.append(set[0]) #TODO. 두번 연결된 점이 여러 개인 경우 어떻게 할지 결정해야 함
-        # print("point_selected_2times :", point_selected_2times)
+        print("point_selected_2times :", point_selected_2times)
         
         return point_selected_2times
     
-    # 2번 이상 연결된 점에 연결된 점 
+    # 2번 이상 연결된 점과 그에 연결된 점 [[2번이상 연결된 점, 그에 연결된 점 1, 그에 연결된 점 2], ...]
+    # 연결 후보 : [][1], [][2]
     def find_candidate(self):
         selected_2times = self.points_count_two()
         drawn_lines = self.drawn_lines
         points_to_connect = [] # 연결 후보
 
         # 두 번 이상 연결된 점에 연결된 점들 반환(그 점들을 이으면 삼각형이 완성될 가능성이 있는)
+        index = 0
         for point in selected_2times:
+            points_to_connect.append([])
+            points_to_connect[index].append(point)
             for line in drawn_lines:
                 if line[0] == point:
-                    points_to_connect.append(line[1])
+                    points_to_connect[index].append(line[1])
                 elif line[1] == point:
-                    points_to_connect.append(line[0])
+                    points_to_connect[index].append(line[0])
                 else:
                     pass    
+            index += 1
 
+        print("points_to_connect :", points_to_connect)
         return points_to_connect
+
+    # 만들어질 삼각형 안에 점이 존재하는지 확인. 존재하는 경우 false 반환 -> true인 경우 그어도 됨.
+    def probability_make_Triangle(self, point1, point2, point3):
+        triangle = [point1, point2, point3]
+        for point in self.whole_points:
+            if bool(Polygon(triangle).intersection(Point(point))): # 점이 없음
+                return True
+            else:
+                False # 점이 없음
 
     def evaluate(self, line, turn):
         tf = self.check_triangle(line, turn)
