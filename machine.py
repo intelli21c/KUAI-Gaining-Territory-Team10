@@ -256,7 +256,6 @@ class MACHINE:
             return 그 사이를 잇는 선분
         '''
 
-        '''(TODO. 주석 해제.)
         # 상대방이 만든 점이 포함된 삼각형을 찾아 연결
         for triangle in self.triangles:
             connected_vertices = 0  # 삼각형 내에 이미 연결된 꼭짓점 수
@@ -324,11 +323,8 @@ class MACHINE:
 
             if available_new_lines:
                 return random.choice(available_new_lines)
-        '''
             
         # heuristic #2 : 한 점에서 이미 두 선분이 이어졌다면 그 두 선분을 이어야 한다(by jiwon)
-        # '''#오류 수정중(23.11.28 16:20)
-
         points_to_connect = self.find_candidate() # array
         print("points_to_connect : ", points_to_connect)
         if points_to_connect:
@@ -347,8 +343,6 @@ class MACHINE:
             # 2번 이상 연결된 점이 1개 이하라면 pass
             else:
                 pass
-        else:
-            print("111")
         
         # heuristic #5 : 휴리스틱으로 골라낼 수 있는 선분이 없다면 랜덤으로 선택(by jiwon)
         # -> 기존 find_best_selection 함수 그대로
