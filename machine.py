@@ -130,12 +130,9 @@ class MACHINE:
         #return list(self.minmaxtree.maximise_child_toplevel(self.minmax_depth))
         drawn_lines = self.drawn_lines
         if len(drawn_lines)<= 5:
-            print("select based rule")
             return self.rule_based_selection()
         else:
-            print("select based min-max algorithm")
             (ex, line) = self.max(-2,2,0)
-            print(line)
             return line
         
 
@@ -246,7 +243,7 @@ class MACHINE:
         
     
     # rule 기반 알고리즘  
-    def rule_based_selection(self):
+    def rule_based_selection(self): # return : [(x1, y10, (x2, y2)]
         
         '''
         TODO. 
@@ -271,6 +268,7 @@ class MACHINE:
                     if Point(point).within(Polygon(triangle)):
                         new_line = self.check_availability(self.turn, (point, triangle[0]))
                         if new_line:
+                            print("1 : new_line : ", new_line)
                             return new_line
 
             # 삼각형의 세 꼭짓점 중 한개의 꼭짓점이 이미 연결된 상태라면 넘어가기
@@ -284,6 +282,7 @@ class MACHINE:
                         if all({point, vertex} not in self.drawn_lines and {vertex, point} not in self.drawn_lines):
                             new_line = self.check_availability(self.turn, (point, vertex))
                             if new_line:
+                                print("2 : new_line : ", new_line)
                                 return new_line
 
             # 삼각형의 세 꼭짓점 중 한개의 꼭짓점이 이미 연결된 상태라면 넘어가기
@@ -318,26 +317,29 @@ class MACHINE:
             available_new_lines = []
 
             for new_line in new_lines:
-                if self.check_availability(self.id, new_line):
+                if self.check_availability(new_line):
                     available_new_lines.append(new_line)
 
             if available_new_lines:
-                return random.choice(available_new_lines)
+                new_choice = list(random.choice(available_new_lines))
+                print("3 : new_line : ", new_choice)
+                return new_choice
             
         # heuristic #2 : 한 점에서 이미 두 선분이 이어졌다면 그 두 선분을 이어야 한다(by jiwon)
         points_to_connect = self.find_candidate() # array
-        print("points_to_connect : ", points_to_connect)
+        # print("points_to_connect : ", points_to_connect)
         if points_to_connect:
-            print("here")
             # 3번 이상 연결된 점이 있는 경우 둘씩 조합하여 가능성을 따짐
             if len(points_to_connect) > 2:
                 combinations_points = list(combinations(points_to_connect, 2))
                 for line in combinations_points:
                     if self.check_availability(line): # TODO. 해당 선분을 이어 삼각형이 생성될 경우 그 삼각형 안에 점이 없는지 확인하는 조건을 추가해야 함
+                        print("4 : new_line : ", line)
                         return line
 
             # 2번만 연결되었다면 상대 두 점을 그대로 반환
             elif len(points_to_connect) == 2:
+                print("5 : new_line : ", points_to_connect)
                 return points_to_connect
             
             # 2번 이상 연결된 점이 1개 이하라면 pass
@@ -346,8 +348,10 @@ class MACHINE:
         
         # heuristic #5 : 휴리스틱으로 골라낼 수 있는 선분이 없다면 랜덤으로 선택(by jiwon)
         # -> 기존 find_best_selection 함수 그대로
-        #available = [[point1, point2] for (point1, point2) in list(combinations(self.whole_points, 2)) if self.check_availability([point1, point2])]
-        #return random.choice(available)
+        available = [[point1, point2] for (point1, point2) in list(combinations(self.whole_points, 2)) if self.check_availability([point1, point2])]
+        choice = random.choice(available)
+        print("6. new line : ", choice)
+        return choice
 
 
     # 각 점에서 연결된 선분의 개수를 세는 함수
@@ -363,7 +367,7 @@ class MACHINE:
             count_connected.append([])
             count_connected[index].append(point)
             index += 1
-        print("count_connected : ", count_connected)
+        # print("count_connected : ", count_connected)
 
         # 2차원 배열의 2열에 각 점이 다른 점들과 연결된 횟수 넣음
         index =0
@@ -383,11 +387,11 @@ class MACHINE:
         count_all_points = self.count_connected_lines() # 2차원 배열. [[(x좌표, y좌표), 각 점이 다른 점들과 연결된 횟수], [], ... ]
 
         point_selected_2times = [] # 2번 이상 선택된 점들
-        print("count_all_points :", count_all_points)
+        # print("count_all_points :", count_all_points)
         for set in count_all_points:
             if set[1] >= 2:
                 point_selected_2times.append(set[0]) #TODO. 두번 연결된 점이 여러 개인 경우 어떻게 할지 결정해야 함
-        print("point_selected_2times :", point_selected_2times)
+        # print("point_selected_2times :", point_selected_2times)
         
         return point_selected_2times
     
