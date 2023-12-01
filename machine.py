@@ -129,7 +129,7 @@ class MACHINE:
         #self.minmaxtree.drawn_lines = deepcopy(self.drawn_lines)
         #return list(self.minmaxtree.maximise_child_toplevel(self.minmax_depth))
         drawn_lines = self.drawn_lines
-        if len(drawn_lines)<= 5:
+        if len(drawn_lines)<= len(self.whole_points)/2:
             return self.rule_based_selection()
         else:
             (ex, line) = self.max(-2,2,0)
