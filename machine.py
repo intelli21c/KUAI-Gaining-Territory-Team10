@@ -1,5 +1,6 @@
 import random
 import numpy as np
+import math
 from itertools import product, chain, combinations
 from shapely.geometry import LineString, Point, Polygon
 from copy import deepcopy
@@ -33,6 +34,8 @@ class MACHINE:
         self.triangles = []  # [(a, b), (c, d), (e, f)]
         self.minmaxtree = self.MinMaxNode()
         self.minmax_depth = 3
+
+        self.max_iter=400
 
     class MinMaxNode:
         def __init__(self):
@@ -128,22 +131,77 @@ class MACHINE:
     def find_best_selection(self):
         #self.minmaxtree.drawn_lines = deepcopy(self.drawn_lines)
         #return list(self.minmaxtree.maximise_child_toplevel(self.minmax_depth))
+        (depth, childs)=self.determine_depth()
+        (ex, line) = self.max(-2,2,depth, childs)
+        return line
         drawn_lines = self.drawn_lines
         if len(drawn_lines)<= len(self.whole_points)/2:
             return self.rule_based_selection()
         else:
-            (ex, line) = self.max(-2,2,0)
+            (depth, childs)=self.determine_depth()
+            (ex, line) = self.max(-2,2,depth, childs)
             return line
         
+     #(depth, childs)
+    def determine_depth(self):
+        count=0
+        """
+        lines = list(combinations(self.whole_points, 2))
+        lines = organise_points(lines)
+        for l in lines:
+            if not self.check_availability(l):
+                continue
+            count+=1
+        """
+        count=len([[point1, point2] for (point1, point2) in list(combinations(self.whole_points, 2)) if self.check_availability([point1, point2])])
+        #real endgame - all child node can be evaluated
+        if(math.factorial(count)<=self.max_iter):
+            return (32767, 32767)
+        #near endgame - possibly small enough that depth might reach bottom
+        available_whole_lines = [[point1, point2] for (point1, point2) in list(combinations(self.whole_points, 2)) if self.count_valid_lines([point1, point2])]
+        if(len(self.drawn_lines)>(1/2)*len(available_whole_lines)):
+            for i in range(10):
+                if(count**i>self.max_iter):
+                    return (i-1, 32767)
+        #midgame - meaningless, just run pre-known value
+        #TODO make a check logic to determine it
+        for i in range(10):
+            if(5**i>self.max_iter):
+                return (i-1, 5)
+        
+    def select_promising(self, lines, c=1):
+        return random.sample(lines, c)
 
-    def max(self, alpha, beta, depth):
+    def max(self, alpha, beta, depth, cnodes):
         maxv = -2
         max_line = [(0,0),(0,0)]
         
-        if self.check_endgame() or depth == 3:
+        if self.check_endgame() or depth == 0:
             maxv = self.score[1] - self.score[0]
             print(self.drawn_lines)
             print(maxv)
+            return (maxv, max_line)
+        
+        #원본코드 보존을 위해 조건을 이렇게 넣었습니다. 괜찮다면 나중에 이 버전으로 전부 돌리세요.
+        if(cnodes!=32767):
+            child_nodes=[[point1, point2] for (point1, point2) in list(combinations(self.whole_points, 2)) if self.check_availability([point1, point2])]
+            for line in self.select_promising(child_nodes):
+                self.drawn_lines.append(line)
+                tf = self.evaluate(line, 1)
+                (m, min_line) = self.min(alpha, beta, depth - 1, cnodes)
+                if (m > maxv):
+                    maxv = m
+                    max_line = line
+                self.drawn_lines.remove(line)
+                if tf:
+                    self.score[1]-=1
+                    self.triangles.pop()
+
+                if maxv >= beta:
+                    return (maxv, max_line)
+                
+                if maxv > alpha:
+                    alpha = maxv
             return (maxv, max_line)
 
         for i in range(0, len(self.whole_points)):
@@ -153,7 +211,7 @@ class MACHINE:
                     line = self.organize_points([self.whole_points[i], self.whole_points[j]])
                     self.drawn_lines.append(line)
                     tf = self.evaluate(line, 1)
-                    (m, min_line) = self.min(alpha, beta, depth + 1)
+                    (m, min_line) = self.min(alpha, beta, depth - 1, cnodes)
                     if (m > maxv):
                         maxv = m
                         max_line = line
@@ -169,14 +227,36 @@ class MACHINE:
                         alpha = maxv
         return (maxv, max_line)
 
-    def min(self, alpha, beta, depth):
+    def min(self, alpha, beta, depth, cnodes):
         minv = 2
         min_line = [(0,0),(0,0)]
 
-        if self.check_endgame() or depth == 3:
+        if self.check_endgame() or depth == 0:
             minv = self.score[1] - self.score[0]
             print(self.drawn_lines)
             print(minv)
+            return (minv, min_line)
+        
+        #원본코드 보존을 위해 조건을 이렇게 넣었습니다. 괜찮다면 나중에 이 버전으로 전부 돌리세요.
+        if(cnodes!=32767):
+            child_nodes=[[point1, point2] for (point1, point2) in list(combinations(self.whole_points, 2)) if self.check_availability([point1, point2])]
+            for line in self.select_promising(child_nodes):
+                self.drawn_lines.append(line)
+                tf = self.evaluate(line, 0)
+                (m, max_line) = self.max(alpha, beta, depth - 1, cnodes)
+                if (m < minv):
+                    minv = m
+                    min_line = line
+                self.drawn_lines.remove(line)
+                if tf:
+                    self.score[0]-=1
+                    self.triangles.pop()
+
+                if minv <= alpha:
+                    return (minv, min_line)
+                
+                if minv < beta:
+                    beta = minv
             return (minv, min_line)
 
         for i in range(0, len(self.whole_points)):
@@ -186,7 +266,7 @@ class MACHINE:
                     line = self.organize_points([self.whole_points[i], self.whole_points[j]])
                     self.drawn_lines.append(line)
                     tf = self.evaluate(line, 0)
-                    (m, max_line) = self.max(alpha, beta, depth + 1)
+                    (m, max_line) = self.max(alpha, beta, depth - 1, cnodes)
                     if (m < minv):
                         minv = m
                         min_line = line
@@ -460,6 +540,36 @@ class MACHINE:
                     self.triangles.append(triangle)
                     return 1
         return 0
+    
+    def count_valid_lines(self, line):
+
+        line_string = LineString(line)
+
+        # Must be one of the whole points
+        condition1 = (line[0] in self.whole_points) and (line[1] in self.whole_points)
+        
+        # Must not skip a dot
+        condition2 = True
+        for point in self.whole_points:
+            if point==line[0] or point==line[1]:
+                continue
+            else:
+                if bool(line_string.intersection(Point(point))):
+                    condition2 = False
+
+        # Must not cross another line
+        condition3 = True
+        for l in self.drawn_lines:
+            if len(list(set([line[0], line[1], l[0], l[1]]))) == 3:
+                continue
+            elif bool(line_string.intersection(LineString(l))):
+                condition3 = False
+
+        if condition1 and condition2 and condition3:
+            return True
+        else:
+            return False    
+
 
 
 def organise_points(point_list):
@@ -502,6 +612,5 @@ def check_avail(line, whole_points, drawn_lines):
         return True
     else:
         return False
-
 
 g_machine: MACHINE = 0
