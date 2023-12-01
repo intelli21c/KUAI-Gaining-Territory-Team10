@@ -334,7 +334,7 @@ class MACHINE:
                 for [point1, point2] in list(combinations(points_to_connect, 2)):
                     if self.check_availability([point1, point2]): # TODO. 해당 선분을 이어 삼각형이 생성될 경우 그 삼각형 안에 점이 없는지 확인하는 조건을 추가해야 함
                         print("4 : new_line : ", list(line))
-                        return line
+                        return list(line)
 
             # 2번만 연결되었다면 상대 두 점을 그대로 반환
             elif len(points_to_connect) == 2:
