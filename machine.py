@@ -289,41 +289,41 @@ class MACHINE:
             elif connected_vertices == 1:
                 continue
 
-            # 아무 선분도 연결되지 않은 두 점 찾기
-            unconnected_points = []
+        # 아무 선분도 연결되지 않은 두 점 찾기
+        unconnected_points = []
 
-            for point in self.whole_points:
-                connected = False
+        for point in self.whole_points:
+            connected = False
 
-                for line in self.drawn_lines:
-                    if point in line:
-                        connected = True
-                        continue
+            for line in self.drawn_lines:
+                if point in line:
+                    connected = True
+                    continue
 
-                if not connected:
-                    unconnected_points.append(point)
+            if not connected:
+                unconnected_points.append(point)
 
-            # unconnected_points 중 두 점을 연결해서 선분 만들기
-            new_lines = []
+        # unconnected_points 중 두 점을 연결해서 선분 만들기
+        new_lines = []
 
-            for i in range(len(unconnected_points) - 1):
-                for j in range(i + 1, len(unconnected_points)):
-                    point1 = unconnected_points[i]
-                    point2 = unconnected_points[j]
-                    new_line = (point1, point2)
-                    new_lines.append(new_line)
+        for i in range(len(unconnected_points) - 1):
+            for j in range(i + 1, len(unconnected_points)):
+                point1 = unconnected_points[i]
+                point2 = unconnected_points[j]
+                new_line = (point1, point2)
+                new_lines.append(new_line)
 
-            # 가능한 선분인지 확인
-            available_new_lines = []
+        # 가능한 선분인지 확인
+        available_new_lines = []
 
-            for new_line in new_lines:
-                if self.check_availability(new_line):
-                    available_new_lines.append(new_line)
+        for new_line in new_lines:
+            if self.check_availability(new_line):
+                available_new_lines.append(new_line)
 
-            if available_new_lines:
-                new_choice = list(random.choice(available_new_lines))
-                print("3 : new_line : ", new_choice)
-                return new_choice
+        if available_new_lines:
+            new_choice = list(random.choice(available_new_lines))
+            print("3 : new_line : ", new_choice)
+            return new_choice
             
         # heuristic #2 : 한 점에서 이미 두 선분이 이어졌다면 그 두 선분을 이어야 한다(by jiwon)
         points_to_connect = self.find_candidate() # array
