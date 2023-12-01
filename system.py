@@ -251,8 +251,9 @@ class SYSTEM():
             self.num_dots = len(self.whole_points)
 
         ### 선공후공 결정 함수 추가
-        lines = self.count_valid_lines()
-        if(lines % 2 == 0 ):
+        available_whole_lines = [[point1, point2] for (point1, point2) in list(combinations(self.whole_points, 2)) if self.count_valid_lines([point1, point2])]
+        print("len(available_whole_lines) : ", len(available_whole_lines))
+        if(len(available_whole_lines) % 2 == 0 ):
             print("후공 유리")
         else:
             print("선공 유리")
@@ -262,35 +263,34 @@ class SYSTEM():
 
         self.label_result.config(text="The game is ongoing!!")
 
-    def count_valid_lines(self):
-        valid_lines_count = 0
-        for line in self.drawn_lines:
-            line_string = LineString(line)
+    def count_valid_lines(self, line):
 
-            # 조건 1: 선분의 양 끝점이 게임 보드의 전체 포인트 중 하나여야 함
-            condition1 = (line[0] in self.whole_points) and (line[1] in self.whole_points)
-    
-            # 조건 2: 선분이 다른 점을 건너뛰지 않아야 함
-            condition2 = True
-            for point in self.whole_points:
-                if point == line[0] or point == line[1]:
-                    continue
-                else:
-                    if bool(line_string.intersection(Point(point))):
-                        condition2 = False
+        line_string = LineString(line)
 
-            # 조건 3: 선분이 다른 선분을 교차하지 않아야 함
-            condition3 = True
-            for l in self.drawn_lines:
-                if len(list(set([line[0], line[1], l[0], l[1]]))) == 3:
-                    continue
-                elif bool(line_string.intersection(LineString(l))):
-                    condition3 = False
+        # Must be one of the whole points
+        condition1 = (line[0] in self.whole_points) and (line[1] in self.whole_points)
+        
+        # Must not skip a dot
+        condition2 = True
+        for point in self.whole_points:
+            if point==line[0] or point==line[1]:
+                continue
+            else:
+                if bool(line_string.intersection(Point(point))):
+                    condition2 = False
 
-            if condition1 and condition2 and condition3:
-                valid_lines_count += 1
+        # Must not cross another line
+        condition3 = True
+        for l in self.drawn_lines:
+            if len(list(set([line[0], line[1], l[0], l[1]]))) == 3:
+                continue
+            elif bool(line_string.intersection(LineString(l))):
+                condition3 = False
 
-        return valid_lines_count
+        if condition1 and condition2 and condition3:
+            return True
+        else:
+            return False    
 
     def circle(self, cx, cy, color):
         self.board.create_oval(cx-RADIUS, cy-RADIUS, cx+RADIUS, cy+RADIUS, fill=color, width=CIRCLE_WIDTH)
