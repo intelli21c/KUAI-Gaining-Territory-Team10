@@ -331,10 +331,9 @@ class MACHINE:
         if points_to_connect:
             # 3번 이상 연결된 점이 있는 경우 둘씩 조합하여 가능성을 따짐
             if len(points_to_connect) > 2:
-                combinations_points = list(combinations(points_to_connect, 2))
-                for line in combinations_points:
-                    if self.check_availability(line): # TODO. 해당 선분을 이어 삼각형이 생성될 경우 그 삼각형 안에 점이 없는지 확인하는 조건을 추가해야 함
-                        print("4 : new_line : ", line)
+                for [point1, point2] in list(combinations(points_to_connect, 2)):
+                    if self.check_availability([point1, point2]): # TODO. 해당 선분을 이어 삼각형이 생성될 경우 그 삼각형 안에 점이 없는지 확인하는 조건을 추가해야 함
+                        print("4 : new_line : ", list(line))
                         return line
 
             # 2번만 연결되었다면 상대 두 점을 그대로 반환
