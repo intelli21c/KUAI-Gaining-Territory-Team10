@@ -132,8 +132,11 @@ class MACHINE:
         #self.minmaxtree.drawn_lines = deepcopy(self.drawn_lines)
         #return list(self.minmaxtree.maximise_child_toplevel(self.minmax_depth))
         drawn_lines = self.drawn_lines
-        if len(drawn_lines)<= len(self.whole_points)/2:
-            return self.rule_based_selection()
+
+        # TODO. 주석 해제. 원래생태로 돌려놓기
+        # if len(drawn_lines)<= len(self.whole_points)/2:
+        return self.rule_based_selection()
+    '''
         else:
 
             (depth, childs)=self.determine_depth()
@@ -171,7 +174,7 @@ class MACHINE:
             # (depth, childs)=self.determine_depth()
             # (ex, line) = self.max(-2,2,depth, childs)
             # return line
-        
+        '''
      #(depth, childs)
     def determine_depth(self):
         count=0
@@ -382,13 +385,16 @@ class MACHINE:
     # rule 기반 알고리즘  
     def rule_based_selection(self): # return : [(x1, y1), (x2, y2)]
         
-        '''
-        TODO. 
         # 1. 이미 완성된 사각형이 있다면 그 사이를 잇는 선분을 그리기
-        if(완성된 사각형이 있는지 확인하는 함수)  #TODO. 사각형이 있는지 확인하는 함수
-            # TODO. 이미 완성된 사각형이 있다면 그 사이를 잇는 선분 그리기
-            return 그 사이를 잇는 선분
-        '''
+        rects = self.find_rectangles()
+        drawn_lines = self.drawn_lines
+        for rectangle in rects: # 사각형이 있다면(내부에 점 없고, 삼각형1+선분1 조합 아니고, )
+            for candi in list(combinations(rectangle, 2)): # candi : 점 2개 조합
+                # print("candi : ", candi)
+                if (candi not in drawn_lines) and (self.check_availability(candi)): # true라면
+                    print("1. 이미 완성된 사각형 new line : ", list(candi))
+                    return list(candi)
+
         # heuristic #2 : 한 점에서 이미 두 선분이 이어졌다면 그 두 선분을 이어야 한다(by jiwon)
         points_to_connect = self.find_candidate() # array
         # print("points_to_connect : ", points_to_connect)
@@ -403,7 +409,7 @@ class MACHINE:
                         # if self.probability_make_Triangle(pointA, pointB, combi[0]):
                             # print("poin1, point2 : ", pointA, pointB)
                             if self.check_availability([pointA, pointB]):
-                                print("4 : new_line : ", [pointA, pointB])
+                                print("2 : 한 점에서 이미 두 선분이 이어졌다면 new_line : ", [pointA, pointB])
                                 return [pointA, pointB]
                             else:
                                 pass
@@ -414,13 +420,15 @@ class MACHINE:
                     if self.check_availability(combi[1:]):
                         if self.check_triangle(combi[1:], 1):
                         # if (self.probability_make_Triangle(combi[0], combi[1], combi[2])):
-                            print("5. 삼각형의 두 선분이 완성된 경우 : new_line : ", combi[1:])
+                            print("2-2. 삼각형의 두 선분이 완성된 경우 : new_line : ", combi[1:])
                             return combi[1:]
                 # 2번 이상 연결된 점이 1개 이하라면 pass
                 else:
                     pass
+        
 
         # 상대방이 만든 점이 포함된 삼각형을 찾아 연결
+        
         for triangle in self.triangles:
             connected_vertices = 0  # 삼각형 내에 이미 연결된 꼭짓점 수
 
@@ -451,10 +459,6 @@ class MACHINE:
                             if new_line:
                                 print("2 : new_line : ", new_line)
                                 return new_line
-
-            # 삼각형의 세 꼭짓점 중 한개의 꼭짓점이 이미 연결된 상태라면 넘어가기
-            elif connected_vertices == 1:
-                continue
 
         # 아무 선분도 연결되지 않은 두 점 찾기
         unconnected_points = []
@@ -500,6 +504,21 @@ class MACHINE:
         print("6. new line : ", choice)
         return choice
 
+    def find_rectangles(self):
+        drawn_lines = self.drawn_lines
+        rectangles = [] # 사각형 list
+        if(len(drawn_lines) > 3):
+            for combi in list(combinations(drawn_lines, 4)):
+                # print("combi in find_rectangles: ", combi)
+                points = set()
+                for pointA, pointB in combi:
+                    points.add(pointA)
+                    points.add(pointB)
+                if len(points) == 4:
+                    # TODO. if 그 안에 삼각형이 없다면 (삼각형1+선분1) 조합이 아닌지 확인
+                    rectangles.append(points)
+        # print("find_rectangels 결과 : ", rectangles)
+        return rectangles
 
     # 각 점에서 연결된 선분의 개수를 세는 함수
     #  -> TODO. 한번도 연결되지 않은 선분을 찾을 때 사용하지 않을 거라면 count_connected_lines_two로 합칠 것
@@ -514,7 +533,7 @@ class MACHINE:
             count_connected.append([])
             count_connected[index].append(point)
             index += 1
-        print("count_connected : ", count_connected)
+        # print("count_connected : ", count_connected)
 
         # 2차원 배열의 2열에 각 점이 다른 점들과 연결된 횟수 넣음
         index =0
@@ -534,11 +553,11 @@ class MACHINE:
         count_all_points = self.count_connected_lines() # 2차원 배열. [[(x좌표, y좌표), 각 점이 다른 점들과 연결된 횟수], [], ... ]
 
         point_selected_2times = [] # 2번 이상 선택된 점들
-        print("count_all_points :", count_all_points)
+        # print("count_all_points :", count_all_points)
         for set in count_all_points:
             if set[1] >= 2:
                 point_selected_2times.append(set[0]) #TODO. 두번 연결된 점이 여러 개인 경우 어떻게 할지 결정해야 함
-        print("point_selected_2times :", point_selected_2times)
+        # print("point_selected_2times :", point_selected_2times)
         
         return point_selected_2times
     
@@ -563,7 +582,7 @@ class MACHINE:
                     pass    
             index += 1
 
-        print("points_to_connect :", points_to_connect)
+        # print("points_to_connect :", points_to_connect)
         return points_to_connect
 
     # 만들어질 삼각형 안에 점이 존재하는지 확인. 존재하는 경우 false 반환 -> true인 경우 그어도 됨.
