@@ -131,44 +131,46 @@ class MACHINE:
     def find_best_selection(self):
         #self.minmaxtree.drawn_lines = deepcopy(self.drawn_lines)
         #return list(self.minmaxtree.maximise_child_toplevel(self.minmax_depth))
-        (depth, childs)=self.determine_depth()
-        ex = -100
-        line = [(0,0),(0,0)]
-        ran = len(self.whole_points) / 4
-        ran = int(ran)
-        p = Pool(6)
-        ret1 = p.apply_async(self.max,(-100,100,depth,depth,childs,ran,0))
-        ret2 = p.apply_async(self.max,(-100,100,depth,depth,childs,ran,1))
-        ret3 = p.apply_async(self.max,(-100,100,depth,depth,childs,ran,2))
-        ret4 = p.apply_async(self.max,(-100,100,depth,depth,childs,ran,3))
-        (t_ex, t_line) = ret1.get()
-        print(t_ex,t_line)
-        if t_ex > ex:
-            ex = t_ex
-            line = t_line
-        (t_ex, t_line) = ret2.get()
-        print(t_ex,t_line)
-        if t_ex > ex:
-            ex = t_ex
-            line = t_line
-        (t_ex, t_line) = ret3.get()
-        print(t_ex,t_line)
-        if t_ex > ex:
-            ex = t_ex
-            line = t_line
-        (t_ex, t_line) = ret4.get()
-        print(t_ex,t_line)
-        if t_ex > ex:
-            ex = t_ex
-            line = t_line
-        return line
         drawn_lines = self.drawn_lines
         if len(drawn_lines)<= len(self.whole_points)/2:
             return self.rule_based_selection()
         else:
+
             (depth, childs)=self.determine_depth()
-            (ex, line) = self.max(-2,2,depth, childs)
+            ex = -100
+            line = [(0,0),(0,0)]
+            ran = len(self.whole_points) / 4
+            ran = int(ran)
+            p = Pool(6)
+            ret1 = p.apply_async(self.max,(-100,100,depth,depth,childs,ran,0))
+            ret2 = p.apply_async(self.max,(-100,100,depth,depth,childs,ran,1))
+            ret3 = p.apply_async(self.max,(-100,100,depth,depth,childs,ran,2))
+            ret4 = p.apply_async(self.max,(-100,100,depth,depth,childs,ran,3))
+            (t_ex, t_line) = ret1.get()
+            print(t_ex,t_line)
+            if t_ex > ex:
+                ex = t_ex
+                line = t_line
+            (t_ex, t_line) = ret2.get()
+            print(t_ex,t_line)
+            if t_ex > ex:
+                ex = t_ex
+                line = t_line
+            (t_ex, t_line) = ret3.get()
+            print(t_ex,t_line)
+            if t_ex > ex:
+                ex = t_ex
+                line = t_line
+            (t_ex, t_line) = ret4.get()
+            print(t_ex,t_line)
+            if t_ex > ex:
+                ex = t_ex
+                line = t_line
             return line
+        
+            # (depth, childs)=self.determine_depth()
+            # (ex, line) = self.max(-2,2,depth, childs)
+            # return line
         
      #(depth, childs)
     def determine_depth(self):
