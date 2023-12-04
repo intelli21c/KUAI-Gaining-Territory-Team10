@@ -133,8 +133,9 @@ class MACHINE:
         #return list(self.minmaxtree.maximise_child_toplevel(self.minmax_depth))
         drawn_lines = self.drawn_lines
 
-        if len(drawn_lines)<= len(self.whole_points)/2:
-            return self.rule_based_selection()
+        #if len(drawn_lines)<= len(self.whole_points)/2:
+        return self.rule_based_selection()
+        '''
         else:
 
             (depth, childs)=self.determine_depth()
@@ -172,6 +173,7 @@ class MACHINE:
             # (depth, childs)=self.determine_depth()
             # (ex, line) = self.max(-2,2,depth, childs)
             # return line
+        '''
      #(depth, childs)
     def determine_depth(self):
         count=0
@@ -425,28 +427,28 @@ class MACHINE:
         '''
 
         # 상대방이 만든 점이 포함된 삼각형을 찾아 연결
-        print("self.triangles : ", self.triangles)
-        for triangle in self.triangles:
-            connected_vertices = 0  # 삼각형 내에 이미 연결된 꼭짓점 수
+        empty_triangles = self.find_triangles()
+        point_count = self.count_connected_lines()
 
-            for vertex in triangle:
-                if any({point, vertex} in self.drawn_lines or {vertex, point} in self.drawn_lines for point in
-                       self.whole_points):
-                    connected_vertices += 1
+        # 빈 삼각형 안에 존재하는 점 찾기
+        if len(empty_triangles)>0:
+            for point in self.whole_points:
+                
+                if Polygon(empty_triangles).intersection(Point(point)):
+                #Polygon(Point(point)).within(empty_triangles): # 빈 삼각형 안에 위치한 점에 대해서
+                    count = 0
+                    # 가운데 위치한 점이 연결된 횟수 가져오기
+                    for row in point_count:
+                        if row[0] == point:
+                            count = row[1]
+                        # 빈 삼각형 안에 존재하는 점이 연결된 횟수가 짝수라면 연결
+                        if count % 2 == 0:
+                            for vertex in empty_triangles:
+                                if self.check_availability([vertex, point]):
+                                    return [vertex, point]
+                        # 빈 삼각형 안에 존재하는 점이 연결된 횟수가 홀수라면 연결x
 
-            # 삼각형의 세 꼭짓점 중 어느 꼭짓점과도 연결되어 있지 않으면 연결
-            if connected_vertices == 0:
-                for point in self.whole_points:
-                    if Point(point).within(Polygon(triangle)):
-                        new_line = self.check_availability(self.turn, (point, triangle[0]))
-                        if new_line:
-                            print("1 : new_line : ", new_line)
-                            return new_line
-
-            # 삼각형의 세 꼭짓점 중 한개의 꼭짓점이 이미 연결된 상태라면 넘어가기
-            elif connected_vertices == 1:
-                continue
-
+            '''
             # 삼각형의 세 꼭짓점 중 두개의 꼭짓점이 연결된 상태라면 나머지 하나의 꼭짓점과 연결
             elif connected_vertices == 2:
                 for point in self.whole_points:
@@ -456,7 +458,7 @@ class MACHINE:
                             if new_line:
                                 print("2 : new_line : ", new_line)
                                 return new_line
-
+                '''
         # 아무 선분도 연결되지 않은 두 점 찾기
         unconnected_points = []
 
@@ -512,11 +514,39 @@ class MACHINE:
                     points.add(pointA)
                     points.add(pointB)
                 if len(points) == 4:
-                    # TODO. if 그 안에 삼각형이 없다면 (삼각형1+선분1) 조합이 아닌지 확인
+                    # TODO. if 그 안에 삼각형이 없다면 (삼각형1+선분1) 조합이 아닌지 확인 -> 나머지 선분을 잇기는 해서 문제 x
                     rectangles.append(points)
         # print("find_rectangels 결과 : ", rectangles)
         return rectangles
 
+    # 색칠되지 않는 삼각형을 찾는 함수
+    def find_triangles(self):
+        drawn_lines = self.drawn_lines
+        empty_triangles = [] # 빈 삼각형 list
+        result = []
+        print("기존 삼각형 : ", self.triangles)
+        if(len(drawn_lines) >2):
+            for combi in list(combinations(drawn_lines, 3)):
+                print("combi : ", combi)
+                points = set()
+                for pointA, pointB in combi:
+                    points.add(pointA)
+                    points.add(pointB)
+                
+                if len(points) == 3:
+                    print("삼각형 확인중인 점들 points : ", points)
+                    # 색칠된 삼각형은 제외
+                    if points not in self.triangles:
+                        empty_triangles.append(points)
+            result = [list(subset) for subset in empty_triangles]
+
+        print("empty_triangle :", result)
+        if len(result) > 0:
+            print("return_empty_triangle(result[0]) :", result[0])
+            return result[0]
+        else:
+            return result
+    
     # 각 점에서 연결된 선분의 개수를 세는 함수
     #  -> TODO. 한번도 연결되지 않은 선분을 찾을 때 사용하지 않을 거라면 count_connected_lines_two로 합칠 것
     def count_connected_lines(self):
@@ -582,6 +612,7 @@ class MACHINE:
         # print("points_to_connect :", points_to_connect)
         return points_to_connect
 
+    '''사용 x'''
     # 만들어질 삼각형 안에 점이 존재하는지 확인. 존재하는 경우 false 반환 -> true인 경우 그어도 됨.
     def probability_make_Triangle(self, point1, point2, point3):
         triangle = [point1, point2, point3]
