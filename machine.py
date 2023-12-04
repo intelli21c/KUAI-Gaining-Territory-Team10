@@ -133,10 +133,8 @@ class MACHINE:
         #return list(self.minmaxtree.maximise_child_toplevel(self.minmax_depth))
         drawn_lines = self.drawn_lines
 
-        # TODO. 주석 해제. 원래생태로 돌려놓기
-        # if len(drawn_lines)<= len(self.whole_points)/2:
-        return self.rule_based_selection()
-    '''
+        if len(drawn_lines)<= len(self.whole_points)/2:
+            return self.rule_based_selection()
         else:
 
             (depth, childs)=self.determine_depth()
@@ -174,7 +172,6 @@ class MACHINE:
             # (depth, childs)=self.determine_depth()
             # (ex, line) = self.max(-2,2,depth, childs)
             # return line
-        '''
      #(depth, childs)
     def determine_depth(self):
         count=0
@@ -384,7 +381,7 @@ class MACHINE:
     
     # rule 기반 알고리즘  
     def rule_based_selection(self): # return : [(x1, y1), (x2, y2)]
-        
+        '''
         # 1. 이미 완성된 사각형이 있다면 그 사이를 잇는 선분을 그리기
         rects = self.find_rectangles()
         drawn_lines = self.drawn_lines
@@ -425,10 +422,10 @@ class MACHINE:
                 # 2번 이상 연결된 점이 1개 이하라면 pass
                 else:
                     pass
-        
+        '''
 
         # 상대방이 만든 점이 포함된 삼각형을 찾아 연결
-        
+        print("self.triangles : ", self.triangles)
         for triangle in self.triangles:
             connected_vertices = 0  # 삼각형 내에 이미 연결된 꼭짓점 수
 
