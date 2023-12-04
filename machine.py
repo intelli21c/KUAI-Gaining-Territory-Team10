@@ -394,12 +394,12 @@ class MACHINE:
             # 3번 이상 연결된 점이 있는 경우 상대 점들을 둘씩 조합하여 가능성을 따짐
             for combi in points_to_connect:
                 if len(combi) > 3:
-                    print("조합 가능성 combi[1:] : ", combi[1:])
+                    # print("조합 가능성 combi[1:] : ", combi[1:])
                     for [pointA, pointB] in list(combinations(combi[1:], 2)):
-                        print("후보 삼각형 : ", pointA, pointB, combi[0])
+                        # print("후보 삼각형 : ", pointA, pointB, combi[0])
                         if self.check_triangle([pointA, pointB], 1):
                         # if self.probability_make_Triangle(pointA, pointB, combi[0]):
-                            print("poin1, point2 : ", pointA, pointB)
+                            # print("poin1, point2 : ", pointA, pointB)
                             if self.check_availability([pointA, pointB]):
                                 print("4 : new_line : ", [pointA, pointB])
                                 return [pointA, pointB]
@@ -408,16 +408,12 @@ class MACHINE:
 
                 # 2번만 연결되었다면 상대 두 점을 그대로 반환
                 elif len(combi) == 3:
-                    print("combi :", combi)
+                    # print("combi :", combi)
                     if self.check_availability(combi[1:]):
-                        print("....")
                         if self.check_triangle(combi[1:], 1):
                         # if (self.probability_make_Triangle(combi[0], combi[1], combi[2])):
-                            print("....,,,,,,")
                             print("5. 삼각형의 두 선분이 완성된 경우 : new_line : ", combi[1:])
                             return combi[1:]
-                    else:
-                        print("..??????")
                 # 2번 이상 연결된 점이 1개 이하라면 pass
                 else:
                     pass
