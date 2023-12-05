@@ -348,6 +348,7 @@ class MACHINE:
         )  # x[0],x[1]을 기준으로 정렬해서 저장, 즉 x값을 기준으로 오름차순으로 정렬하고 x값이 같다면 y값을 기준으로 정렬
         return point_list
 
+    # 주어진 선분을 그을 수 있는지 확인
     def check_availability(self, line):
         line_string = LineString(line)
 
@@ -406,15 +407,18 @@ class MACHINE:
                 if len(combi) > 3:
                     print("3번 이상 연결된 점 & 그 점에 연결된 점들 : ", combi)
                     for [pointA, pointB] in list(combinations(combi[1:], 2)):
-                        # print("후보 삼각형 : ", pointA, pointB, combi[0])
-                        if self.check_triangle([pointA, pointB], 1):
-                            # if self.probability_make_Triangle(pointA, pointB, combi[0]):
-                            # print("poin1, point2 : ", pointA, pointB)
-                            if self.check_availability([pointA, pointB]):
+                        print("후보 삼각형 : ", combi[0], pointA, pointB)
+                        if self.check_availability([pointA, pointB]):
+                            print("-> 후보 삼각형의 뒤의 두 점을 이을 수 있고")
+                            print("point1, point2 : ", pointA, pointB)
+                            if self.check_triangle([pointA, pointB], 1):
+                                print("후보 삼각형으로 삼각형 생성 가능")
                                 print("2 : 한 점에서 이미 두 선분이 이어졌다면 : ", [pointA, pointB])
                                 return [pointA, pointB]
                             else:
-                                pass
+                                print("->후보 삼각형으로 삼각형 생성 불가.")
+                        else:
+                            print("-> 후보 삼각형으로 삼각형 생성 불가")
 
                 # 2번만 연결되었다면 상대 두 점을 그대로 반환
                 elif len(combi) == 3:
@@ -600,6 +604,7 @@ class MACHINE:
     # 연결 후보 : [][1], [][2]
     def find_candidate(self):
         selected_2times = self.points_count_two()
+        print("2번 이상 선택된 점들 : ", selected_2times)
         drawn_lines = self.drawn_lines
         points_to_connect = []  # 연결 후보
 
