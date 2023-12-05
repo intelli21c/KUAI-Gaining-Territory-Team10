@@ -127,15 +127,24 @@ class MACHINE:
     def max_toplevel(self, alpha, beta, depth, cnodes, ran, id):
         maxv = -100
         max_line = [(0,0),(0,0)]
+        """
+        available_whole_lines = [[point1, point2] for (point1, point2) in list(combinations(self.whole_points, 2)) if self.count_valid_lines([point1, point2])]
+        if(len(self.drawn_lines)<(1/2)*len(available_whole_lines)):
+            for i in range(id * ran, ((id + 1) * ran) if id != (self.procs-1) else len(self.available_moves)):
+                line=self.available_moves[i]        
+                self.drawn_lines.append(line)
+                tf = self.evaluate(line, 1)
+                if (m != 100 and m == maxv and self.score[1]>self.score[0]): max_line = line
+                return (maxv, max_line)
+        """
 
-        
 
         for i in range(id * ran, ((id + 1) * ran) if id != (self.procs-1) else len(self.available_moves)):
             line=self.available_moves[i]        
             self.drawn_lines.append(line)
             tf = self.evaluate(line, 1)
             (m, min_line) = self.min(alpha, beta, depth - 1, cnodes)
-            if (m != 100 and m == maxv and self.score[1]>self.score[0]): max_line = line
+            if (m != 100 and m == maxv and self.score[1]>self.score[0]): max_line = line #rem.
             if (m != 100 and m > maxv):
                 maxv = m
                 max_line = line

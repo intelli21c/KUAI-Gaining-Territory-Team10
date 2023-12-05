@@ -177,10 +177,6 @@ class SYSTEM():
 
         self.button_auto = Button(self.root, text="AUTO(STEP)", width=10, fg="grey20", highlightbackground=BACKGROUND, command=self.auto)
         self.button_auto.place(x=machine_x, y=machine_y+25+(machine_y-user_y)-50)
-
-        self.button_auto2 = Button(self.root, text="AUTO(FULL)", width=10, fg="grey20", highlightbackground=BACKGROUND, command=self.fullauto)
-        self.button_auto2.place(x=machine_x+100, y=machine_y+25+(machine_y-user_y)-50)
-
         self.click_mode=1
 
         self.root.mainloop()
@@ -539,23 +535,3 @@ class SYSTEM():
             self.machine2_go()
         elif(self.turn=="MACHINE"):
             self.machine_go()
-
-    def fullauto(self):
-        if(self.check_endgame()):
-            return
-        if(self.turn=="USER"):
-            while(1):
-                self.machine2_go()
-                if(self.check_endgame()):
-                    break
-                self.machine_go()
-                if(self.check_endgame()):
-                    break
-        elif(self.turn=="MACHINE"):
-            while(1):
-                self.machine_go()
-                if(self.check_endgame()):
-                    break
-                self.machine2_go()
-                if(self.check_endgame()):
-                    break
