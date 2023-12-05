@@ -132,9 +132,9 @@ class MACHINE:
         #self.minmaxtree.drawn_lines = deepcopy(self.drawn_lines)
         #return list(self.minmaxtree.maximise_child_toplevel(self.minmax_depth))
 
-        if len(self.drawn_lines)<= len(self.whole_points)/2:
-            return self.rule_based_selection()
-        
+        # if len(self.drawn_lines)<= len(self.whole_points)/2:
+        return self.rule_based_selection()
+        '''
         else:
 
             (depth, childs)=self.determine_depth()
@@ -172,7 +172,7 @@ class MACHINE:
             # (depth, childs)=self.determine_depth()
             # (ex, line) = self.max(-2,2,depth, childs)
             # return line
-        
+        '''
      #(depth, childs)
     def determine_depth(self):
         count=0
@@ -397,27 +397,24 @@ class MACHINE:
         points_to_connect = self.find_candidate() # array
         # print("points_to_connect : ", points_to_connect)
         if points_to_connect:
-            # 3번 이상 연결된 점이 있는 경우 상대 점들을 둘씩 조합하여 가능성을 따짐
             for combi in points_to_connect:
+
+                # 3번 이상 연결된 점이 있는 경우 상대 점들을 둘씩 조합하여 가능성을 따짐
                 if len(combi) > 3:
-                    # print("조합 가능성 combi[1:] : ", combi[1:])
+                    print("3번 이상 연결된 점 & 그 점에 연결된 점들 : ", combi)
                     for [pointA, pointB] in list(combinations(combi[1:], 2)):
-                        # print("후보 삼각형 : ", pointA, pointB, combi[0])
-                        if self.check_triangle([pointA, pointB], 1):
-                        # if self.probability_make_Triangle(pointA, pointB, combi[0]):
-                            # print("poin1, point2 : ", pointA, pointB)
-                            if self.check_availability([pointA, pointB]):
-                                print("2 : 한 점에서 이미 두 선분이 이어졌다면 : ", [pointA, pointB])
-                                return [pointA, pointB]
-                            else:
-                                pass
+                        print("후보 삼각형(3번 이상 연결된 점 & 그 점에 연결된 점들 중 2개) : ", pointA, pointB, combi[0])
+                        if self.check_availability([pointA, pointB]) and self.check_triangle([pointA, pointB], 1):
+                            print("2 : 한 점에서 이미 두 선분이 이어졌다면 : ", [pointA, pointB])
+                            return [pointA, pointB]
+                        else:
+                            pass
 
                 # 2번만 연결되었다면 상대 두 점을 그대로 반환
                 elif len(combi) == 3:
-                    # print("combi :", combi)
+                    print("2번만 연결되었다면  combi :", combi)
                     if self.check_availability(combi[1:]):
                         if self.check_triangle(combi[1:], 1):
-                        # if (self.probability_make_Triangle(combi[0], combi[1], combi[2])):
                             print("3. 삼각형의 두 선분이 완성된 경우 : ", combi[1:])
                             return combi[1:]
                 # 2번 이상 연결된 점이 1개 이하라면 pass
@@ -443,7 +440,7 @@ class MACHINE:
                         # 빈 삼각형 안에 존재하는 점이 연결된 횟수가 짝수라면 연결
                         if count % 2 == 0:
                             for vertex in empty_triangles:
-                                if self.check_availability([vertex, point]):
+                                if (vertex != point) and (self.check_availability([vertex, point])):
                                     print("4. 빈 삼각형 - 짝수 : ", [vertex, point])
                                     return [vertex, point]
                         # 빈 삼각형 안에 존재하는 점이 연결된 횟수가 홀수라면 연결x
@@ -516,7 +513,7 @@ class MACHINE:
         # print("기존 삼각형 : ", self.triangles)
         if(len(drawn_lines) >2):
             for combi in list(combinations(drawn_lines, 3)):
-                # print("combi : ", combi)
+                # print("색칠되지 않는 삼각형 combi : ", combi)
                 points = set()
                 for pointA, pointB in combi:
                     points.add(pointA)
@@ -642,6 +639,7 @@ class MACHINE:
         ]
         return False if remain_to_draw else True
 
+    # 주어진 line을 그엇을 때 삼각형이 생성되는지 확인하는 함수
     def check_triangle(self, line, turn):
         point1 = line[0]
         point2 = line[1]
