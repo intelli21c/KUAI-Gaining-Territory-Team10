@@ -44,6 +44,7 @@ class MACHINE:
             return self.rule_based_selection()
         
         else:
+            print(f"before run score: {self.score[1]} {self.score[0]}")
             self.available_moves=[[point1, point2] for (point1, point2) in list(combinations(self.whole_points, 2)) if self.check_availability([point1, point2])]
             (depth, childs)=self.determine_depth()
             ex = -100
@@ -142,17 +143,16 @@ class MACHINE:
         for i in range(id * ran, ((id + 1) * ran) if id != (self.procs-1) else len(self.available_moves)):
             line=self.available_moves[i]        
             self.drawn_lines.append(line)
-            tf = self.evaluate(line, 1)
+            (added_score, added_triangle) = self.check_score(line, 1)
             (m, min_line) = self.min(alpha, beta, depth - 1, cnodes)
-            if (m != 100 and m == maxv and self.score[1]>self.score[0]): max_line = line #rem.
-            if (m != 100 and m > maxv):
+            if m > maxv:
                 maxv = m
                 max_line = line
             self.drawn_lines.remove(line)
-            if tf:
-                self.score[1]-=1
-                self.triangles.pop()
-
+            if added_score != 0:
+                self.score[1]-=added_score
+                for i in added_triangle:
+                    self.triangles.remove(i)
             #trivially unnecessary.
             if maxv >= beta:
                 return (maxv, max_line)
@@ -168,21 +168,24 @@ class MACHINE:
         
         if self.check_endgame() or depth == 0:
             maxv = self.score[1] - self.score[0]
-            print(f"bottom node: value {maxv}")
+            print(max_line, self.score[1], self.score[0])
+            # print(f"bottom node: value {maxv}")
+            # print(self.drawn_lines)
             return (maxv, max_line)
         
         child_nodes=[[point1, point2] for (point1, point2) in self.available_moves if self.check_availability([point1, point2])]
         for line in (self.select_promising(child_nodes) if len(child_nodes)>cnodes else child_nodes):
             self.drawn_lines.append(line)
-            tf = self.evaluate(line, 1)
+            (added_score, added_triangle) = self.check_score(line, 1)
             (m, min_line) = self.min(alpha, beta, depth - 1, cnodes)
-            if (m != 100 and m > maxv):
+            if  m > maxv:
                 maxv = m
                 max_line = line
             self.drawn_lines.remove(line)
-            if tf:
-                self.score[1]-=1
-                self.triangles.pop()
+            if added_score != 0:
+                self.score[1]-=added_score
+                for i in added_triangle:
+                    self.triangles.remove(i)
 
             if maxv >= beta:
                 return (maxv, max_line)
@@ -199,7 +202,7 @@ class MACHINE:
                 if self.check_availability([self.whole_points[i], self.whole_points[j]]):
                     line = self.organize_points([self.whole_points[i], self.whole_points[j]])
                     self.drawn_lines.append(line)
-                    tf = self.evaluate(line, 1)
+                    (tf, triangle) = self.check_score(line, 1)
                     (m, min_line) = self.min(alpha, beta, depth - 1, cnodes)
                     if (m != 100 and m > maxv):
                         maxv = m
@@ -207,8 +210,8 @@ class MACHINE:
                     self.drawn_lines.remove(line)
                     if tf:
                         self.score[1]-=1
-                        self.triangles.pop()
-
+                        self.triangles.remove(triangle)
+                        
                     if maxv >= beta:
                         return (maxv, max_line)
                     
@@ -223,22 +226,24 @@ class MACHINE:
 
         if self.check_endgame() or depth == 0:
             minv = self.score[1] - self.score[0]
-            print(f"bottom node: value {minv}")
+            print(min_line, self.score[1], self.score[0])
+            # print(f"bottom node: value {minv}")
+            # print(self.drawn_lines)
             return (minv, min_line)
         
         child_nodes=[[point1, point2] for (point1, point2) in self.available_moves if self.check_availability([point1, point2])]
         for line in (self.select_promising(child_nodes) if len(child_nodes)>cnodes else child_nodes):
             self.drawn_lines.append(line)
-            self.drawn_lines.append(line)
-            tf = self.evaluate(line, 0)
+            (added_score, added_triangle) = self.check_score(line, 0)
             (m, max_line) = self.max(alpha, beta, depth - 1, cnodes)
-            if (m != -100 and m < minv):
+            if m < minv:
                 minv = m
                 min_line = line
             self.drawn_lines.remove(line)
-            if tf:
-                self.score[0]-=1
-                self.triangles.pop()
+            if added_score != 0:
+                self.score[0]-=added_score
+                for i in added_triangle:
+                    self.triangles.remove(i)
 
             if minv <= alpha:
                 return (minv, min_line)
@@ -254,7 +259,7 @@ class MACHINE:
                 if self.check_availability([self.whole_points[i], self.whole_points[j]]):
                     line = self.organize_points([self.whole_points[i], self.whole_points[j]])
                     self.drawn_lines.append(line)
-                    tf = self.evaluate(line, 0)
+                    (tf, triangle) = self.check_score(line, 0)
                     (m, max_line) = self.max(alpha, beta, depth - 1, cnodes)
                     if (m != -100 and m < minv):
                         minv = m
@@ -262,13 +267,14 @@ class MACHINE:
                     self.drawn_lines.remove(line)
                     if tf:
                         self.score[0]-=1
-                        self.triangles.pop()
+                        self.triangles.remove(triangle)
 
                     if minv <= alpha:
                         return (minv, min_line)
                     
                     if minv < beta:
                         beta = minv
+
         return (minv, min_line)
 
     def organize_points(self, point_list):
@@ -561,10 +567,6 @@ class MACHINE:
             else:
                 False # 점이 없음
 
-    def evaluate(self, line, turn):
-        tf = self.check_triangle(line, turn)
-        return tf
-
     def check_endgame(self):
         remain_to_draw = [
             [point1, point2]
@@ -609,6 +611,50 @@ class MACHINE:
                     self.triangles.append(triangle)
                     return 1
         return 0
+    
+    def check_score(self, line, turn):
+        score = 0
+        triangles = []
+        point1 = line[0]
+        point2 = line[1]
+
+        point1_connected = []
+        point2_connected = []
+
+        for l in self.drawn_lines:  # 그려진 선들을 살펴보면서 나 자신을 제외한 선분들이 어떤 점과 연결되어 있는지를 저장
+            if l == line:  # 자기 자신 제외
+                continue
+            if point1 in l:
+                point1_connected.append(l)
+            if point2 in l:
+                point2_connected.append(l)
+
+        if point1_connected and point2_connected:  # 최소한 2점 모두 다른 선분과 연결되어 있어야 함
+            for line1, line2 in product(point1_connected, point2_connected):
+                # Check if it is a triangle & Skip the triangle has occupied
+                triangle = self.organize_points(list(set(chain(*[line, line1, line2]))))
+                if len(triangle) != 3 or triangle in self.triangles:
+                    continue
+
+                empty = True
+                for point in self.whole_points:
+                    if point in triangle:
+                        continue
+                    polygon = Polygon(triangle)
+                    if polygon.is_valid:  # Check if the polygon is valid
+                        if bool(polygon.intersection(Point(point))):  # Check if the point is inside the polygon
+                            empty = False
+
+                if empty:
+                    self.score[turn] += 1
+                    score += 1
+                    self.triangles.append(triangle)
+                    triangles.append(triangle)
+            
+        if score != 0:
+            return (score, triangles)
+        else:
+            return (0, [[(0,0),(0,0),(0,0)]])
     
     def count_valid_lines(self, line):
 
